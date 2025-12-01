@@ -1,215 +1,267 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <title>MiniMart Store</title>
+    <title>MiniMart Convenience Store</title>
+
     <style>
         body {
+            background-color: #111;
+            color: white;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background: #f3f3f3;
         }
 
         h1 {
-            background: #4CAF50;
-            color: white;
-            padding: 15px;
-            margin: 0;
-        }
-
-        .container {
+            text-align: center;
             padding: 20px;
         }
 
-        .category {
-            margin-bottom: 25px;
+        /* Item Boxes (Original Dark Style) */
+        .item-box {
+            border: 1px solid #444;
+            border-radius: 12px;
             padding: 15px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            margin: 10px;
+            background-color: #1e1e1e;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+            text-align: center;
         }
 
-        .item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .item:last-child {
-            border-bottom: none;
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 90%;
+            margin: auto;
         }
 
         button {
-            padding: 6px 10px;
-            cursor: pointer;
-            background: #4CAF50;
-            color: white;
+            margin: 5px;
+            padding: 7px 12px;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #333;
+            color: white;
         }
 
         button:hover {
-            background: #45a049;
+            background-color: #555;
         }
 
-        /* --- Cart Sidebar --- */
+        /* --- SLIDING CART SIDEBAR (LEFT SIDE) --- */
         #cartSidebar {
             position: fixed;
-            right: -350px;
             top: 0;
-            width: 350px;
+            left: -300px; /* hidden by default */
+            width: 300px;
             height: 100%;
-            background: #ffffff;
-            box-shadow: -2px 0 8px rgba(0,0,0,0.2);
-            transition: right 0.35s ease;
+            background-color: #1b1b1b;
+            border-right: 2px solid #444;
             padding: 20px;
-            z-index: 999;
+            box-shadow: 3px 0 6px rgba(0,0,0,0.4);
+            transition: left 0.35s ease;
+            overflow-y: auto;
+            z-index: 9999;
+        }
+
+        #cartToggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #222;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 10000;
         }
 
         #cartSidebar.open {
-            right: 0;
+            left: 0;
         }
 
-        #cartButton {
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            background: #ff9800;
-            color: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            z-index: 1000;
-            border: none;
-        }
-
-        #cartButton:hover {
-            background: #e68600;
-        }
-
-        .cart-item {
-            border-bottom: 1px solid #ddd;
-            padding: 8px 0;
-        }
-
-        #checkoutButton {
-            width: 100%;
-            margin-top: 15px;
-            background: #2196F3;
-        }
-
-        #checkoutButton:hover {
-            background: #1976D2;
+        hr {
+            border-color: #444;
         }
     </style>
 </head>
 <body>
 
-<h1>MiniMart Store</h1>
+    <h1>🏪 MiniMart Convenience Store</h1>
 
-<button id="cartButton">🛒 Cart</button>
+    <!-- Cart Toggle Button -->
+    <button id="cartToggle">🛒 Cart</button>
 
-<div class="container">
-    <div class="category">
-        <h2>Snacks</h2>
-        <div class="item">
-            <span>Chips - $2</span>
-            <button onclick="addToCart('Chips', 2)">Add</button>
-        </div>
-        <div class="item">
-            <span>Chocolate - $3</span>
-            <button onclick="addToCart('Chocolate', 3)">Add</button>
-        </div>
+    <!-- Sliding Cart Sidebar -->
+    <div id="cartSidebar">
+        <h2>Your Cart</h2>
+        <div id="cartItems"></div>
+        <hr>
+        <h3 id="cartTotal">Total: $0.00</h3>
+        <button onclick="checkout()">Buy Now</button>
     </div>
 
-    <div class="category">
-        <h2>Drinks</h2>
-        <div class="item">
-            <span>Water - $1</span>
-            <button onclick="addToCart('Water', 1)">Add</button>
-        </div>
-        <div class="item">
-            <span>Soda - $2</span>
-            <button onclick="addToCart('Soda', 2)">Add</button>
-        </div>
+    <!-- Categories -->
+    <div style="text-align:center; margin-bottom:20px;">
+        <select id="categorySelect" onchange="loadCategory()">
+        </select>
     </div>
-</div>
 
-<!-- CART SIDEBAR -->
-<div id="cartSidebar">
-    <h2>Your Cart</h2>
-    <div id="cartItems"></div>
-    <h3>Total: $<span id="cartTotal">0</span></h3>
-    <button id="checkoutButton" onclick="checkout()">Buy Now</button>
-</div>
+    <!-- Items -->
+    <div id="itemsContainer" class="item-grid"></div>
 
-<script>
-    let cart = {};
+    <script>
+        // Store Data (same as Streamlit version)
+        const categories = {
+            "Chips": {
+                "Lay’s Classic": 2.5,
+                "Doritos Nacho Cheese": 2.8,
+                "Pringles Original": 3.0,
+                "Cheetos Crunchy": 2.6,
+                "Ruffles Sour Cream & Onion": 2.7,
+                "Lay’s BBQ": 2.5,
+                "Takis Fuego": 3.2,
+                "Kettle Sea Salt": 2.9,
+                "Tostitos Scoops": 3.1,
+                "Calbee Hot & Spicy": 3.0
+            },
+            "Drinks": {
+                "Coca-Cola": 1.5,
+                "Pepsi": 1.5,
+                "Sprite": 1.5,
+                "Fanta Orange": 1.6,
+                "Mountain Dew": 1.7,
+                "Gatorade Lemon-Lime": 2.0,
+                "Red Bull": 2.8,
+                "Monster Energy": 3.0,
+                "Iced Coffee (Can)": 2.2,
+                "Bottled Water": 1.0,
+                "Minute Maid Apple Juice": 2.0,
+                "Milk Tea (Bottle)": 2.5
+            },
+            "Candies / Chocolate": {
+                "Snickers": 1.5,
+                "KitKat": 1.5,
+                "Twix": 1.6,
+                "M&M’s": 1.8,
+                "Hershey’s Bar": 1.7,
+                "Skittles": 1.5,
+                "Reese’s Peanut Butter Cup": 1.9,
+                "Mentos": 1.0,
+                "Toblerone": 2.0,
+                "Ferrero Rocher": 2.5,
+                "Sour Patch Kids": 1.8,
+                "Chupa Chups Lollipop": 1.0,
+                "Kinder Bueno": 2.2,
+                "Pocky (Strawberry)": 1.8
+            },
+            "Instant Noodles": {
+                "Nissin Cup Noodles (Chicken)": 2.0,
+                "Nissin Spicy Beef": 2.2,
+                "Shin Ramyun": 2.5,
+                "Samyang Hot Chicken": 3.0,
+                "Indomie Mi Goreng": 2.0,
+                "Maruchan Seafood Flavor": 2.3,
+                "Nongshim Neoguri": 2.5,
+                "Mama Shrimp Tom Yum": 2.1
+            },
+            "Gift Cards": {
+                "Steam Gift Card ($10)": 10.0,
+                "Google Play Card ($10)": 10.0,
+                "Apple Gift Card ($10)": 10.0,
+                "Roblox Gift Card ($10)": 10.0,
+                "Amazon Gift Card ($10)": 10.0,
+                "Netflix Gift Card ($10)": 10.0
+            }
+        };
 
-    function addToCart(name, price) {
-        if (!cart[name]) cart[name] = { price: price, qty: 0 };
-        cart[name].qty++;
-        updateCart();
-    }
+        // Populate category dropdown
+        const categorySelect = document.getElementById("categorySelect");
+        for (let cat in categories) {
+            let option = document.createElement("option");
+            option.value = cat;
+            option.textContent = cat;
+            categorySelect.appendChild(option);
+        }
 
-    function removeItem(name) {
-        if (cart[name]) {
-            cart[name].qty--;
-            if (cart[name].qty <= 0) delete cart[name];
+        // Cart storage
+        let cart = {};
+
+        function loadCategory() {
+            const selected = categorySelect.value;
+            const container = document.getElementById("itemsContainer");
+            container.innerHTML = "";
+
+            for (let item in categories[selected]) {
+                let price = categories[selected][item];
+
+                container.innerHTML += `
+                    <div class="item-box">
+                        <h3>${item}</h3>
+                        <p>💵 $${price.toFixed(2)}</p>
+                        <button onclick="addItem('${item}', ${price})">➕ Add</button>
+                        <button onclick="removeItem('${item}')">➖ Remove</button>
+                    </div>
+                `;
+            }
+        }
+
+        function addItem(item, price) {
+            if (!cart[item]) {
+                cart[item] = { price: price, quantity: 0 };
+            }
+            cart[item].quantity++;
             updateCart();
         }
-    }
 
-    function updateCart() {
-        let cartDiv = document.getElementById("cartItems");
-        cartDiv.innerHTML = "";
-        let total = 0;
-
-        for (const item in cart) {
-            const entry = cart[item];
-            total += entry.price * entry.qty;
-
-            cartDiv.innerHTML += `
-                <div class="cart-item">
-                    ${item} x${entry.qty} — $${entry.price * entry.qty}
-                    <br>
-                    <button onclick="removeItem('${item}')">Remove</button>
-                </div>
-            `;
+        function removeItem(item) {
+            if (cart[item]) {
+                cart[item].quantity--;
+                if (cart[item].quantity <= 0) delete cart[item];
+            }
+            updateCart();
         }
 
-        document.getElementById("cartTotal").innerText = total;
-    }
+        function updateCart() {
+            const cartItems = document.getElementById("cartItems");
+            const cartTotal = document.getElementById("cartTotal");
 
-    // Sidebar toggle
-    const cartButton = document.getElementById("cartButton");
-    const cartSidebar = document.getElementById("cartSidebar");
+            cartItems.innerHTML = "";
+            let total = 0;
 
-    cartButton.addEventListener("click", () => {
-        cartSidebar.classList.toggle("open");
-    });
+            for (let item in cart) {
+                let q = cart[item].quantity;
+                let p = cart[item].price;
 
-    function checkout() {
-        if (Object.keys(cart).length === 0) {
-            alert("Your cart is empty!");
-            return;
+                total += q * p;
+
+                cartItems.innerHTML += `
+                    <p>${item} x${q} — $${(q * p).toFixed(2)}</p>
+                `;
+            }
+
+            cartTotal.textContent = "Total: $" + total.toFixed(2);
         }
 
-        let receipt = "Your Order:\n\n";
-        let total = 0;
-
-        for (const item in cart) {
-            receipt += `${item} x${cart[item].qty} = $${cart[item].price * cart[item].qty}\n`;
-            total += cart[item].price * cart[item].qty;
+        function checkout() {
+            alert("Thank you for shopping with us!\n(Email sending not enabled in HTML version.)");
+            cart = {};
+            updateCart();
         }
 
-        receipt += `\nTotal = $${total}`;
+        // Cart Sidebar Toggle
+        const cartSidebar = document.getElementById("cartSidebar");
+        const cartToggle = document.getElementById("cartToggle");
 
-        alert(receipt);
-    }
-</script>
+        cartToggle.onclick = () => {
+            cartSidebar.classList.toggle("open");
+        };
+
+        // Load default category
+        loadCategory();
+    </script>
 
 </body>
 </html>

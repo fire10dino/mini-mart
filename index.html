@@ -1,270 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>MiniMart Convenience Store</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #fff;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #1e1e1e;
-            padding: 20px;
-            text-align: center;
-        }
-        h1 {
-            margin: 0;
-        }
-        #container {
-            display: flex;
-            padding: 20px;
-        }
-        #categories {
-            flex: 3;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .item-card {
-            background-color: #1e1e1e;
-            border: 1px solid #444;
-            border-radius: 12px;
-            padding: 15px;
-            width: 200px;
-            text-align: center;
-            box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
-        }
-        .item-card h4 {
-            margin-bottom: 5px;
-        }
-        .item-card p {
-            margin-top: 0;
-        }
-        .btn {
-            padding: 5px 10px;
-            margin: 5px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        .btn-add {
-            background-color: #28a745;
-            color: white;
-        }
-        .btn-remove {
-            background-color: #dc3545;
-            color: white;
-        }
-        #cart {
-            flex: 1;
-            background-color: #1e1e1e;
-            border: 1px solid #444;
-            border-radius: 12px;
-            padding: 15px;
-            margin-left: 20px;
-            height: fit-content;
-        }
-        #cart h2 {
-            margin-top: 0;
-        }
-        #buyBtn {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-        select, input {
-            width: 100%;
-            padding: 5px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: none;
-        }
-    </style>
+<meta charset="UTF-8" />
+<title>MiniMart Convenience Store</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: white;
+    }
+
+    /* Header */
+    header {
+        background-color: #1e1e1e;
+        padding: 20px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: bold;
+    }
+
+    /* Layout */
+    #layout {
+        display: flex;
+        height: calc(100vh - 80px);
+    }
+
+    /* Left side store area */
+    #storeSection {
+        flex: 3;
+        padding: 20px;
+        overflow-y: auto;
+    }
+
+    /* Sidebar cart */
+    #cartSidebar {
+        width: 300px;
+        background-color: #1e1e1e;
+        border-left: 1px solid #333;
+        padding: 20px;
+        position: sticky;
+        right: 0;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    /* Items grid */
+    #itemsGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .item-card {
+        background-color: #1e1e1e;
+        border: 1px solid #444;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0px 0px 8px rgba(0,0,0,0.2);
+    }
+
+    .item-card h3 {
+        margin: 5px 0;
+    }
+
+    .btn {
+        padding: 7px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 3px;
+        width: 85px;
+    }
+
+    .btn-add {
+        background-color: #28a745;
+        color: white;
+    }
+    .btn-remove {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    #cartItems div {
+        margin-bottom: 8px;
+    }
+
+    #buyBtn {
+        width: 100%;
+        margin-top: 15px;
+        padding: 10px;
+        background-color: #007bff;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    select {
+        width: 300px;
+        padding: 7px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        border: none;
+        background-color: #222;
+        color: white;
+    }
+</style>
 </head>
 <body>
 
-<header>
-    <h1>🏪 MiniMart Convenience Store</h1>
-</header>
+<header>🏪 MiniMart Convenience Store</header>
 
-<div id="container">
-    <div>
-        <label for="categorySelect">Choose a category:</label>
+<div id="layout">
+
+    <!-- Store Section -->
+    <div id="storeSection">
+        <label>Choose a category:</label><br>
         <select id="categorySelect"></select>
-        <div id="categories"></div>
+
+        <div id="itemsGrid"></div>
     </div>
 
-    <div id="cart">
+    <!-- Sidebar Cart -->
+    <div id="cartSidebar">
         <h2>🛒 Your Cart</h2>
         <div id="cartItems">Your cart is empty.</div>
         <h3 id="total"></h3>
         <button id="buyBtn">🛍️ Buy Now</button>
-        <div id="receipt"></div>
+        <pre id="receipt" style="white-space:pre-line; margin-top:20px;"></pre>
     </div>
+
 </div>
 
 <script>
-    const categories = {
-        "Chips": {
-            "Lay’s Classic": 2.5,
-            "Doritos Nacho Cheese": 2.8,
-            "Pringles Original": 3.0,
-            "Cheetos Crunchy": 2.6,
-            "Ruffles Sour Cream & Onion": 2.7,
-            "Lay’s BBQ": 2.5,
-            "Takis Fuego": 3.2,
-            "Kettle Sea Salt": 2.9,
-            "Tostitos Scoops": 3.1,
-            "Calbee Hot & Spicy": 3.0
-        },
-        "Drinks": {
-            "Coca-Cola": 1.5,
-            "Pepsi": 1.5,
-            "Sprite": 1.5,
-            "Fanta Orange": 1.6,
-            "Mountain Dew": 1.7,
-            "Gatorade Lemon-Lime": 2.0,
-            "Red Bull": 2.8,
-            "Monster Energy": 3.0,
-            "Iced Coffee (Can)": 2.2,
-            "Bottled Water": 1.0,
-            "Minute Maid Apple Juice": 2.0,
-            "Milk Tea (Bottle)": 2.5
-        },
-        "Candies / Chocolate": {
-            "Snickers": 1.5,
-            "KitKat": 1.5,
-            "Twix": 1.6,
-            "M&M’s": 1.8,
-            "Hershey’s Bar": 1.7,
-            "Skittles": 1.5,
-            "Reese’s Peanut Butter Cup": 1.9,
-            "Mentos": 1.0,
-            "Toblerone": 2.0,
-            "Ferrero Rocher": 2.5,
-            "Sour Patch Kids": 1.8,
-            "Chupa Chups Lollipop": 1.0,
-            "Kinder Bueno": 2.2,
-            "Pocky (Strawberry)": 1.8
-        },
-        "Instant Noodles": {
-            "Nissin Cup Noodles (Chicken)": 2.0,
-            "Nissin Spicy Beef": 2.2,
-            "Shin Ramyun": 2.5,
-            "Samyang Hot Chicken": 3.0,
-            "Indomie Mi Goreng": 2.0,
-            "Maruchan Seafood Flavor": 2.3,
-            "Nongshim Neoguri": 2.5,
-            "Mama Shrimp Tom Yum": 2.1
-        },
-        "Gift Cards": {
-            "Steam Gift Card ($10)": 10.0,
-            "Google Play Card ($10)": 10.0,
-            "Apple Gift Card ($10)": 10.0,
-            "Roblox Gift Card ($10)": 10.0,
-            "Amazon Gift Card ($10)": 10.0,
-            "Netflix Gift Card ($10)": 10.0
-        }
-    };
+const categories = {
+    "Chips": {
+        "Lay’s Classic": 2.5,
+        "Doritos Nacho Cheese": 2.8,
+        "Pringles Original": 3.0,
+        "Cheetos Crunchy": 2.6,
+        "Ruffles Sour Cream & Onion": 2.7,
+        "Lay’s BBQ": 2.5,
+        "Takis Fuego": 3.2,
+        "Kettle Sea Salt": 2.9,
+        "Tostitos Scoops": 3.1,
+        "Calbee Hot & Spicy": 3.0
+    },
+    "Drinks": {
+        "Coca-Cola": 1.5,
+        "Pepsi": 1.5,
+        "Sprite": 1.5,
+        "Fanta Orange": 1.6,
+        "Mountain Dew": 1.7,
+        "Gatorade Lemon-Lime": 2.0,
+        "Red Bull": 2.8,
+        "Monster Energy": 3.0,
+        "Iced Coffee (Can)": 2.2,
+        "Bottled Water": 1.0,
+        "Minute Maid Apple Juice": 2.0,
+        "Milk Tea (Bottle)": 2.5
+    },
+    "Candies / Chocolate": {
+        "Snickers": 1.5,
+        "KitKat": 1.5,
+        "Twix": 1.6,
+        "M&M’s": 1.8,
+        "Hershey’s Bar": 1.7,
+        "Skittles": 1.5,
+        "Reese’s Peanut Butter Cup": 1.9,
+        "Mentos": 1.0,
+        "Toblerone": 2.0,
+        "Ferrero Rocher": 2.5,
+        "Sour Patch Kids": 1.8,
+        "Chupa Chups Lollipop": 1.0,
+        "Kinder Bueno": 2.2,
+        "Pocky (Strawberry)": 1.8
+    },
+    "Instant Noodles": {
+        "Nissin Cup Noodles (Chicken)": 2.0,
+        "Nissin Spicy Beef": 2.2,
+        "Shin Ramyun": 2.5,
+        "Samyang Hot Chicken": 3.0,
+        "Indomie Mi Goreng": 2.0,
+        "Maruchan Seafood Flavor": 2.3,
+        "Nongshim Neoguri": 2.5,
+        "Mama Shrimp Tom Yum": 2.1
+    },
+    "Gift Cards": {
+        "Steam Gift Card ($10)": 10.0,
+        "Google Play Card ($10)": 10.0,
+        "Apple Gift Card ($10)": 10.0,
+        "Roblox Gift Card ($10)": 10.0,
+        "Amazon Gift Card ($10)": 10.0,
+        "Netflix Gift Card ($10)": 10.0
+    }
+};
 
-    let cart = {};
+let cart = {};
 
-    const categorySelect = document.getElementById("categorySelect");
-    const categoriesDiv = document.getElementById("categories");
-    const cartItemsDiv = document.getElementById("cartItems");
-    const totalDiv = document.getElementById("total");
-    const receiptDiv = document.getElementById("receipt");
+const categorySelect = document.getElementById("categorySelect");
+const itemsGrid = document.getElementById("itemsGrid");
+const cartItemsDiv = document.getElementById("cartItems");
+const totalDiv = document.getElementById("total");
+const receiptDiv = document.getElementById("receipt");
 
-    // Populate category select
-    Object.keys(categories).forEach(cat => {
-        const opt = document.createElement("option");
-        opt.value = cat;
-        opt.textContent = cat;
-        categorySelect.appendChild(opt);
-    });
+/* Load categories into dropdown */
+Object.keys(categories).forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    categorySelect.appendChild(opt);
+});
 
-    function displayItems(category) {
-        categoriesDiv.innerHTML = "";
-        const items = categories[category];
-        for (const [name, price] of Object.entries(items)) {
-            const card = document.createElement("div");
-            card.className = "item-card";
-            card.innerHTML = `
-                <h4>${name}</h4>
-                <p>💵 $${price.toFixed(2)}</p>
-                <button class="btn btn-add">➕ Add</button>
-                <button class="btn btn-remove">➖ Remove</button>
-            `;
-            const addBtn = card.querySelector(".btn-add");
-            const removeBtn = card.querySelector(".btn-remove");
+/* Display items */
+function loadCategory(cat) {
+    itemsGrid.innerHTML = "";
+    const items = categories[cat];
 
-            addBtn.onclick = () => {
-                if (cart[name]) cart[name].quantity += 1;
-                else cart[name] = {price: price, quantity: 1};
+    for (const [name, price] of Object.entries(items)) {
+        const card = document.createElement("div");
+        card.className = "item-card";
+        card.innerHTML = `
+            <h3>${name}</h3>
+            <p>💵 $${price.toFixed(2)}</p>
+            <button class="btn btn-add">➕ Add</button>
+            <button class="btn btn-remove">➖ Remove</button>
+        `;
+
+        card.querySelector(".btn-add").onclick = () => {
+            if (!cart[name]) cart[name] = { price, quantity: 0 };
+            cart[name].quantity++;
+            updateCart();
+        };
+
+        card.querySelector(".btn-remove").onclick = () => {
+            if (cart[name]) {
+                cart[name].quantity--;
+                if (cart[name].quantity <= 0) delete cart[name];
                 updateCart();
-            };
-            removeBtn.onclick = () => {
-                if (cart[name]) {
-                    cart[name].quantity -= 1;
-                    if (cart[name].quantity <= 0) delete cart[name];
-                    updateCart();
-                }
-            };
+            }
+        };
 
-            categoriesDiv.appendChild(card);
-        }
+        itemsGrid.appendChild(card);
+    }
+}
+
+/* Update cart sidebar */
+function updateCart() {
+    cartItemsDiv.innerHTML = "";
+    let total = 0;
+
+    if (Object.keys(cart).length === 0) {
+        cartItemsDiv.textContent = "Your cart is empty.";
+        totalDiv.textContent = "";
+        return;
     }
 
-    function updateCart() {
-        cartItemsDiv.innerHTML = "";
-        let total = 0;
-        if (Object.keys(cart).length === 0) {
-            cartItemsDiv.textContent = "Your cart is empty.";
-            totalDiv.textContent = "";
-            return;
-        }
-        for (const [name, info] of Object.entries(cart)) {
-            const itemDiv = document.createElement("div");
-            const subtotal = info.price * info.quantity;
-            total += subtotal;
-            itemDiv.textContent = `${name} x${info.quantity} - $${subtotal.toFixed(2)}`;
-            cartItemsDiv.appendChild(itemDiv);
-        }
-        totalDiv.textContent = `💰 Total: $${total.toFixed(2)}`;
+    for (const [name, info] of Object.entries(cart)) {
+        const line = document.createElement("div");
+        const subtotal = info.price * info.quantity;
+        total += subtotal;
+        line.textContent = `${name} x${info.quantity} — $${subtotal.toFixed(2)}`;
+        cartItemsDiv.appendChild(line);
     }
 
-    categorySelect.onchange = () => displayItems(categorySelect.value);
+    totalDiv.textContent = `💰 Total: $${total.toFixed(2)}`;
+}
 
-    document.getElementById("buyBtn").onclick = () => {
-        if (Object.keys(cart).length === 0) {
-            alert("Your cart is empty.");
-            return;
-        }
-        let receipt = "🧾 Purchase Receipt:\n\n";
-        let total = 0;
-        for (const [name, info] of Object.entries(cart)) {
-            const subtotal = info.price * info.quantity;
-            total += subtotal;
-            receipt += `${name} x${info.quantity} - $${subtotal.toFixed(2)}\n`;
-        }
-        receipt += `\n💰 Total: $${total.toFixed(2)}`;
-        receiptDiv.textContent = receipt;
-        cart = {};
-        updateCart();
-    };
+document.getElementById("buyBtn").onclick = () => {
+    if (Object.keys(cart).length === 0) {
+        alert("Your cart is empty.");
+        return;
+    }
 
-    // Initial display
-    displayItems(categorySelect.value);
+    let receipt = "🧾 Purchase Receipt\n\n";
+    let total = 0;
 
+    for (const [name, info] of Object.entries(cart)) {
+        const subtotal = info.price * info.quantity;
+        total += subtotal;
+        receipt += `${name} x${info.quantity} — $${subtotal.toFixed(2)}\n`;
+    }
+
+    receipt += `\nTOTAL: $${total.toFixed(2)}\n\nThank you for shopping!`;
+
+    receiptDiv.textContent = receipt;
+
+    cart = {}; // clear cart
+    updateCart();
+};
+
+categorySelect.onchange = () => loadCategory(categorySelect.value);
+
+loadCategory(categorySelect.value);
 </script>
 
 </body>

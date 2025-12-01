@@ -2,117 +2,408 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MiniMart Convenience Store</title>
 <style>
-    body {
+    * {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background-color: #121212;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
         color: white;
+        min-height: 100vh;
     }
-
     header {
-        background-color: #1e1e1e;
-        padding: 15px;
+        background: linear-gradient(135deg, #1e1e1e 0%, #2d2d44 100%);
+        padding: 25px;
         text-align: center;
-        font-size: 2em;
+        font-size: 2.5em;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
-
-    .category-bar {
-        background-color: #1a1a1a; /* slightly darker than main background */
-        padding: 15px;
-        margin: 10px auto;
-        width: 95%;
-        border-radius: 12px;
+    .cart-icon {
+        position: fixed;
+        top: 20px;
+        right: 30px;
+        background: #007bff;
+        color: white;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8em;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,123,255,0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+        z-index: 101;
+    }
+    .cart-icon:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0,123,255,0.6);
+    }
+    .cart-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7em;
+        font-weight: bold;
+    }
+    .category-container {
         display: flex;
         justify-content: center;
-        align-items: center;
-        font-size: 1.2em;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 20px;
+        margin: 0 auto;
+        max-width: 1200px;
+    }
+    .category-bar {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d44 100%);
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-size: 1.1em;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-
     .category-bar:hover {
-        background-color: #222; /* subtle hover effect */
+        background: linear-gradient(135deg, #2d2d44 0%, #3d3d5c 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
-
+    .category-bar.active {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border-color: #0056b3;
+        transform: scale(1.05);
+    }
     .container {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        margin-top: 10px;
+        gap: 20px;
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
     }
-
     .card {
         border: 1px solid #444;
-        border-radius: 12px;
-        padding: 15px;
-        margin: 10px;
-        background-color: #1e1e1e;
-        width: 220px;
+        border-radius: 16px;
+        padding: 20px;
+        background: linear-gradient(135deg, #1e1e1e 0%, #2a2a3e 100%);
+        width: 240px;
         text-align: center;
-        box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        transition: transform 0.3s, box-shadow 0.3s;
     }
-
-    .add-btn {
-        background-color: #007bff;
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    }
+    .card h4 {
+        font-size: 1.3em;
+        margin-bottom: 10px;
+        color: #3399ff;
+    }
+    .card p {
+        font-size: 1.5em;
+        margin: 15px 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    .quantity {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 15px 0;
+    }
+    .quantity span {
+        font-size: 1.3em;
+        font-weight: bold;
+        min-width: 30px;
+    }
+    .add-btn, .remove-btn {
         color: white;
         border: none;
-        padding: 8px 12px;
-        margin: 5px;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-
-    .remove-btn {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        margin: 5px;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-
-    .buy-btn {
-        background-color: #3399ff;
-        color: white;
-        border: none;
-        padding: 12px 20px;
+        padding: 10px 15px;
         cursor: pointer;
         border-radius: 8px;
+        font-size: 1.1em;
+        transition: all 0.2s;
+        font-weight: bold;
+    }
+    .add-btn {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    }
+    .add-btn:hover {
+        background: linear-gradient(135deg, #218838 0%, #155724 100%);
+        transform: scale(1.05);
+    }
+    .remove-btn {
+        background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%);
+    }
+    .remove-btn:hover {
+        background: linear-gradient(135deg, #c82333 0%, #a71d2a 100%);
+        transform: scale(1.05);
+    }
+    .cart-panel {
+        position: fixed;
+        right: -400px;
+        top: 0;
+        width: 400px;
+        height: 100vh;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d44 100%);
+        box-shadow: -4px 0 20px rgba(0,0,0,0.5);
+        transition: right 0.3s;
+        z-index: 102;
+        overflow-y: auto;
+        padding: 20px;
+    }
+    .cart-panel.open {
+        right: 0;
+    }
+    .cart-header {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #444;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .close-cart {
+        cursor: pointer;
+        font-size: 1.2em;
+        background: #dc3545;
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .cart-item {
+        background: #2a2a3e;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .cart-total {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #444;
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+    .checkout-btn {
+        background: linear-gradient(135deg, #3399ff 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        padding: 15px;
+        cursor: pointer;
+        border-radius: 10px;
         width: 100%;
-        margin-top: 10px;
+        margin-top: 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .checkout-btn:hover {
+        background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+        transform: scale(1.02);
+    }
+    .empty-cart {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+        font-size: 1.2em;
     }
 </style>
 </head>
 <body>
-
 <header>🏪 MiniMart Convenience Store</header>
 
-<div class="category-bar" onclick="alert('Selected category: Chips')">
-    Chips
+<div class="cart-icon" onclick="toggleCart()">
+    🛒
+    <span class="cart-badge" id="cartBadge">0</span>
 </div>
 
-<div class="container">
-    <div class="card">
-        <h4>Lay’s Classic</h4>
-        <p>💵 $2.50</p>
-        <button class="add-btn">➕ Add</button>
-        <button class="remove-btn">➖ Remove</button>
+<div class="category-container">
+    <div class="category-bar active" onclick="filterCategory('all')">🛍️ All Items</div>
+    <div class="category-bar" onclick="filterCategory('chips')">🥔 Chips</div>
+    <div class="category-bar" onclick="filterCategory('drinks')">🥤 Drinks</div>
+    <div class="category-bar" onclick="filterCategory('candy')">🍬 Candy</div>
+    <div class="category-bar" onclick="filterCategory('snacks')">🍿 Snacks</div>
+</div>
+
+<div class="container" id="productContainer"></div>
+
+<div class="cart-panel" id="cartPanel">
+    <div class="cart-header">
+        🛒 Your Cart
+        <button class="close-cart" onclick="toggleCart()">✕</button>
     </div>
-    <div class="card">
-        <h4>Doritos Nacho Cheese</h4>
-        <p>💵 $2.80</p>
-        <button class="add-btn">➕ Add</button>
-        <button class="remove-btn">➖ Remove</button>
+    <div id="cartItems"></div>
+    <div class="cart-total">
+        Total: $<span id="cartTotal">0.00</span>
     </div>
-    <!-- more cards here -->
+    <button class="checkout-btn" onclick="checkout()">💳 Checkout</button>
 </div>
 
-<div style="width: 95%; margin: 20px auto;">
-    <button class="buy-btn">🛍️ Buy Now</button>
-</div>
+<script>
+const products = [
+    { id: 1, name: "Lay's Classic", price: 2.50, category: "chips", emoji: "🥔" },
+    { id: 2, name: "Doritos Nacho Cheese", price: 2.80, category: "chips", emoji: "🌮" },
+    { id: 3, name: "Pringles Original", price: 3.00, category: "chips", emoji: "🥫" },
+    { id: 4, name: "Ruffles Cheddar", price: 2.75, category: "chips", emoji: "🧀" },
+    { id: 5, name: "Coca-Cola", price: 1.99, category: "drinks", emoji: "🥤" },
+    { id: 6, name: "Pepsi", price: 1.99, category: "drinks", emoji: "🥤" },
+    { id: 7, name: "Mountain Dew", price: 2.25, category: "drinks", emoji: "💚" },
+    { id: 8, name: "Red Bull", price: 3.50, category: "drinks", emoji: "⚡" },
+    { id: 9, name: "M&M's", price: 1.75, category: "candy", emoji: "🍫" },
+    { id: 10, name: "Skittles", price: 1.50, category: "candy", emoji: "🌈" },
+    { id: 11, name: "Snickers", price: 1.85, category: "candy", emoji: "🥜" },
+    { id: 12, name: "Reese's", price: 1.95, category: "candy", emoji: "🥜" },
+    { id: 13, name: "Popcorn", price: 2.50, category: "snacks", emoji: "🍿" },
+    { id: 14, name: "Beef Jerky", price: 5.99, category: "snacks", emoji: "🥩" },
+    { id: 15, name: "Trail Mix", price: 3.75, category: "snacks", emoji: "🥜" },
+    { id: 16, name: "Granola Bar", price: 2.25, category: "snacks", emoji: "🌾" }
+];
 
+let cart = {};
+let currentCategory = 'all';
+
+function renderProducts() {
+    const container = document.getElementById('productContainer');
+    container.innerHTML = '';
+   
+    const filtered = currentCategory === 'all'
+        ? products
+        : products.filter(p => p.category === currentCategory);
+   
+    filtered.forEach(product => {
+        const quantity = cart[product.id] || 0;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <h4>${product.emoji} ${product.name}</h4>
+            <p>💵 $${product.price.toFixed(2)}</p>
+            <div class="quantity">
+                <button class="remove-btn" onclick="removeFromCart(${product.id})">➖</button>
+                <span>${quantity}</span>
+                <button class="add-btn" onclick="addToCart(${product.id})">➕</button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function addToCart(productId) {
+    cart[productId] = (cart[productId] || 0) + 1;
+    updateCart();
+    renderProducts();
+}
+
+function removeFromCart(productId) {
+    if (cart[productId] > 0) {
+        cart[productId]--;
+        if (cart[productId] === 0) {
+            delete cart[productId];
+        }
+        updateCart();
+        renderProducts();
+    }
+}
+
+function updateCart() {
+    const badge = document.getElementById('cartBadge');
+    const total = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+    badge.textContent = total;
+   
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+   
+    if (total === 0) {
+        cartItems.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+        cartTotal.textContent = '0.00';
+        return;
+    }
+   
+    let totalPrice = 0;
+    cartItems.innerHTML = '';
+   
+    Object.keys(cart).forEach(productId => {
+        const product = products.find(p => p.id == productId);
+        const quantity = cart[productId];
+        const itemTotal = product.price * quantity;
+        totalPrice += itemTotal;
+       
+        const item = document.createElement('div');
+        item.className = 'cart-item';
+        item.innerHTML = `
+            <div>
+                <div><strong>${product.emoji} ${product.name}</strong></div>
+                <div style="color: #888; font-size: 0.9em;">$${product.price.toFixed(2)} × ${quantity}</div>
+            </div>
+            <div style="font-weight: bold; color: #4CAF50;">$${itemTotal.toFixed(2)}</div>
+        `;
+        cartItems.appendChild(item);
+    });
+   
+    cartTotal.textContent = totalPrice.toFixed(2);
+}
+
+function toggleCart() {
+    const panel = document.getElementById('cartPanel');
+    panel.classList.toggle('open');
+}
+
+function filterCategory(category) {
+    currentCategory = category;
+    document.querySelectorAll('.category-bar').forEach(bar => {
+        bar.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    renderProducts();
+}
+
+function checkout() {
+    const total = document.getElementById('cartTotal').textContent;
+    if (parseFloat(total) > 0) {
+        alert(`Thank you for your purchase!\nTotal: $${total}\n\nYour order has been placed! 🎉`);
+        cart = {};
+        updateCart();
+        renderProducts();
+        toggleCart();
+    } else {
+        alert('Your cart is empty!');
+    }
+}
+
+renderProducts();
+updateCart();
+</script>
 </body>
 </html>

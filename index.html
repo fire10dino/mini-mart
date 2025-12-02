@@ -240,6 +240,98 @@
         color: #888;
         font-size: 1.2em;
     }
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 103;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.8);
+        align-items: center;
+        justify-content: center;
+    }
+    .modal.active {
+        display: flex;
+    }
+    .modal-content {
+        background: linear-gradient(135deg, #1e1e1e 0%, #2a2a3e 100%);
+        padding: 40px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+    .modal-header {
+        font-size: 1.8em;
+        margin-bottom: 25px;
+        color: #3399ff;
+        text-align: center;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.1em;
+        color: #ccc;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 2px solid #444;
+        background: #2d2d44;
+        color: white;
+        font-size: 1em;
+        transition: border-color 0.3s;
+    }
+    .form-group input:focus {
+        outline: none;
+        border-color: #3399ff;
+    }
+    .form-group input::placeholder {
+        color: #888;
+    }
+    .error-message {
+        color: #dc3545;
+        font-size: 0.9em;
+        margin-top: 5px;
+        display: none;
+    }
+    .modal-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    .modal-btn {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .submit-btn {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+    }
+    .submit-btn:hover {
+        background: linear-gradient(135deg, #218838 0%, #155724 100%);
+        transform: scale(1.02);
+    }
+    .cancel-btn {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        color: white;
+    }
+    .cancel-btn:hover {
+        background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%);
+        transform: scale(1.02);
+    }
 </style>
 </head>
 <body>
@@ -269,7 +361,29 @@
     <div class="cart-total">
         Total: $<span id="cartTotal">0.00</span>
     </div>
-    <button class="checkout-btn" onclick="checkout()">💳 Checkout</button>
+    <button class="checkout-btn" onclick="showCheckoutForm()">💳 Checkout</button>
+</div>
+
+<div class="modal" id="checkoutModal">
+    <div class="modal-content">
+        <div class="modal-header">📋 Complete Your Order</div>
+        <form id="checkoutForm">
+            <div class="form-group">
+                <label for="preferredName">Preferred Name:</label>
+                <input type="text" id="preferredName" name="preferredName" placeholder="Enter your name" required>
+                <div class="error-message" id="nameError">Please enter your name</div>
+            </div>
+            <div class="form-group">
+                <label for="sixDigitCode">6-Digit Code:</label>
+                <input type="text" id="sixDigitCode" name="sixDigitCode" placeholder="Enter 6-digit code" maxlength="6" required>
+                <div class="error-message" id="codeError">Please enter exactly 6 digits</div>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="modal-btn cancel-btn" onclick="closeCheckoutForm()">Cancel</button>
+                <button type="submit" class="modal-btn submit-btn">Place Order</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -294,6 +408,8 @@ const products = [
 
 let cart = {};
 let currentCategory = 'all';
+
+const STORE_EMAIL = "clive.lin.dino@gmail.com";
 
 function renderProducts() {
     const container = document.getElementById('productContainer');
@@ -389,18 +505,93 @@ function filterCategory(category) {
     renderProducts();
 }
 
-function checkout() {
+function showCheckoutForm() {
     const total = document.getElementById('cartTotal').textContent;
-    if (parseFloat(total) > 0) {
-        alert(`Thank you for your purchase!\nTotal: $${total}\n\nYour order has been placed! 🎉`);
+    if (parseFloat(total) === 0) {
+        alert('Your cart is empty!');
+        return;
+    }
+    
+    document.getElementById('checkoutModal').classList.add('active');
+    document.getElementById('preferredName').value = '';
+    document.getElementById('sixDigitCode').value = '';
+    document.getElementById('nameError').style.display = 'none';
+    document.getElementById('codeError').style.display = 'none';
+}
+
+function closeCheckoutForm() {
+    document.getElementById('checkoutModal').classList.remove('active');
+}
+
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('preferredName').value.trim();
+    const code = document.getElementById('sixDigitCode').value.trim();
+    
+    let hasError = false;
+    
+    // Validate name
+    if (name === '') {
+        document.getElementById('nameError').style.display = 'block';
+        hasError = true;
+    } else {
+        document.getElementById('nameError').style.display = 'none';
+    }
+    
+    // Validate 6-digit code
+    if (!/^\d{6}$/.test(code)) {
+        document.getElementById('codeError').style.display = 'block';
+        hasError = true;
+    } else {
+        document.getElementById('codeError').style.display = 'none';
+    }
+    
+    if (hasError) {
+        return;
+    }
+    
+    // Build order details
+    let orderDetails = '🛒 NEW ORDER FROM MINIMART\n\n';
+    orderDetails += '👤 Customer Name: ' + name + '\n';
+    orderDetails += '🔢 Code: ' + code + '\n\n';
+    orderDetails += '📦 ITEMS ORDERED:\n';
+    orderDetails += '================================\n';
+    
+    let totalPrice = 0;
+    Object.keys(cart).forEach(productId => {
+        const product = products.find(p => p.id == productId);
+        const quantity = cart[productId];
+        const itemTotal = product.price * quantity;
+        totalPrice += itemTotal;
+        
+        orderDetails += product.emoji + ' ' + product.name + '\n';
+        orderDetails += '   Quantity: ' + quantity + '\n';
+        orderDetails += '   Price: $' + product.price.toFixed(2) + ' each\n';
+        orderDetails += '   Subtotal: $' + itemTotal.toFixed(2) + '\n\n';
+    });
+    
+    orderDetails += '================================\n';
+    orderDetails += '💰 TOTAL: $' + totalPrice.toFixed(2) + '\n';
+    
+    // Create mailto link
+    const subject = 'MiniMart Order - ' + name + ' (Code: ' + code + ')';
+    const body = encodeURIComponent(orderDetails);
+    const mailtoLink = `mailto:${STORE_EMAIL}?subject=${encodeURIComponent(subject)}&body=${body}`;
+    
+    // Open email client
+    window.location.href = mailtoLink;
+    
+    // Close modal and reset cart after a short delay
+    setTimeout(() => {
+        closeCheckoutForm();
         cart = {};
         updateCart();
         renderProducts();
         toggleCart();
-    } else {
-        alert('Your cart is empty!');
-    }
-}
+        alert('Order placed! Please send the email that just opened. 📧');
+    }, 500);
+});
 
 renderProducts();
 updateCart();
